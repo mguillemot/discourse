@@ -47,7 +47,8 @@
               <a href='#' class='badge-notification unread-private-messages'>{{currentUser.unread_private_messages}}</a>
             {{/if}}
           {{else}}
-            <a class='icon' href="#" {{action showLogin}} title='{{i18n notifications.title}}'><i class='icon-comment'></i></a>
+            <!--<a class='icon' href="#" {{action showLogin}} title='{{i18n notifications.title}}'><i class='icon-comment'></i></a>-->
+            <a class='icon' href="#" title='{{i18n notifications.title}}'><i class='icon-comment'></i></a>
           {{/if}}
         </li>
         <li>
@@ -87,7 +88,8 @@
           {{#if currentUser}}
             {{#linkTo 'userActivity.index' currentUser titleKey="current_user" class="icon"}}{{boundAvatar currentUser imageSize="medium" }}{{/linkTo}}
           {{else}}
-            <div class="icon not-logged-in-avatar" {{action showLogin}}><i class='icon-user'></i></div>
+            <!--<div class="icon not-logged-in-avatar" {{action showLogin}}><i class='icon-user'></i></div>-->
+            <div class="icon not-logged-in-avatar"><i class='icon-user'></i></div>
           {{/if}}
         </li>
       </ul>
