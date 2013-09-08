@@ -10,7 +10,11 @@ Discourse.ApplicationRoute = Em.Route.extend({
 
   events: {
     showLogin: function() {
-      Discourse.Route.showModal(this, 'login');
+      if (Discourse.SiteSettings.external_login_url != '') {
+        window.location = Discourse.SiteSettings.external_login_url + "?redirect=" + window.location;
+      } else {
+        Discourse.Route.showModal(this, 'login');
+      }
     },
 
     showCreateAccount: function() {
