@@ -4,9 +4,6 @@
       <div class="full-width" id='user-menu'>
         <h1>{{name}}<span>{{username}}{{{statusIcon}}}</span></h1>
 
-        {{#if viewingSelf}}
-          <button {{action "logout" target="Discourse"}} class='btn'>{{i18n user.log_out}}</button>
-        {{/if}}
         {{#if currentUser.staff}}
           <a {{bindAttr href="adminPath"}} class='btn'><i class="icon-wrench"></i>&nbsp;{{i18n admin.user.show_admin_profile}}</a>
         {{/if}}
@@ -19,9 +16,6 @@
               {{#linkTo 'userPrivateMessages'}}{{i18n user.private_messages}}{{/linkTo}}
             </li>
           {{/if}}
-          <li>
-            {{#linkTo 'user.invited'}}{{i18n user.invited.title}}{{/linkTo}}
-          </li>
           {{#if can_edit}}
             <li>
               {{#linkTo 'preferences'}}{{i18n user.preferences}}{{/linkTo}}
