@@ -1146,53 +1146,107 @@ describe Guardian do
   end
 
   describe "can_edit_username?" do
-    it "is false without a logged in user" do
-      Guardian.new(nil).can_edit_username?(build(:user, created_at: 1.minute.ago)).should be_false
-    end
-
-    it "is false for regular users to edit another user's username" do
-      Guardian.new(build(:user)).can_edit_username?(build(:user, created_at: 1.minute.ago)).should be_false
-    end
-
-    shared_examples "staff can always change usernames" do
-      it "is true for moderators" do
-        Guardian.new(moderator).can_edit_username?(user).should be_true
-      end
-
-      it "is true for admins" do
-        Guardian.new(admin).can_edit_username?(user).should be_true
-      end
-    end
-
-    context 'for a new user' do
-      let(:target_user) { build(:user, created_at: 1.minute.ago) }
-      include_examples "staff can always change usernames"
-
-      it "is true for the user to change his own username" do
-        Guardian.new(target_user).can_edit_username?(target_user).should be_true
-      end
-    end
-
-    context 'for an old user' do
+    context 'when allowed in settings' do
       before do
-        SiteSetting.stubs(:username_change_period).returns(3)
+        SiteSetting.stubs(:username_editable?).returns(true)
       end
 
-      let(:target_user) { build(:user, created_at: 4.days.ago) }
+      it "is false without a logged in user" do
+        Guardian.new(nil).can_edit_username?(build(:user, created_at: 1.minute.ago)).should be_false
+      end
 
-      context 'with no posts' do
+      it "is false for regular users to edit another user's username" do
+        Guardian.new(build(:user)).can_edit_username?(build(:user, created_at: 1.minute.ago)).should be_false
+      end
+
+      shared_examples "staff can always change usernames" do
+        it "is true for moderators" do
+          Guardian.new(moderator).can_edit_username?(user).should be_true
+        end
+
+        it "is true for admins" do
+          Guardian.new(admin).can_edit_username?(user).should be_true
+        end
+      end
+
+      context 'for a new user' do
+        let(:target_user) { build(:user, created_at: 1.minute.ago) }
         include_examples "staff can always change usernames"
+
         it "is true for the user to change his own username" do
           Guardian.new(target_user).can_edit_username?(target_user).should be_true
         end
       end
 
-      context 'with posts' do
-        before { target_user.stubs(:post_count).returns(1) }
-        include_examples "staff can always change usernames"
-        it "is false for the user to change his own username" do
-          Guardian.new(target_user).can_edit_username?(target_user).should be_false
+      context 'for an old user' do
+        before do
+          SiteSetting.stubs(:username_change_period).returns(3)
         end
+
+        let(:target_user) { build(:user, created_at: 4.days.ago) }
+
+        context 'with no posts' do
+          include_examples "staff can always change usernames"
+          it "is true for the user to change his own username" do
+            Guardian.new(target_user).can_edit_username?(target_user).should be_true
+          end
+        end
+
+        context 'with posts' do
+          before { target_user.stubs(:post_count).returns(1) }
+          include_examples "staff can always change usernames"
+          it "is false for the user to change his own username" do
+            Guardian.new(target_user).can_edit_username?(target_user).should be_false
+          end
+        end
+      end
+    end
+
+    context 'when not allowed in settings' do
+      before do
+        SiteSetting.stubs(:username_editable?).returns(false)
+      end
+
+      it "is false even for admins" do
+        Guardian.new(admin).can_edit_username?(user).should be_false
+      end
+    end
+  end
+
+  describe "can_edit_email?" do
+    context 'when allowed in settings' do
+      before do
+        SiteSetting.stubs(:email_editable?).returns(true)
+      end
+
+      it "is false when not logged in" do
+        Guardian.new(nil).can_edit_email?(build(:user, created_at: 1.minute.ago)).should be_false
+      end
+
+      it "is false for regular users to edit another user's email" do
+        Guardian.new(build(:user)).can_edit_email?(build(:user, created_at: 1.minute.ago)).should be_false
+      end
+
+      it "is true for a regular user to edit his own email" do
+        Guardian.new(user).can_edit_email?(user).should be_true
+      end
+
+      it "is true for moderators" do
+        Guardian.new(moderator).can_edit_email?(user).should be_true
+      end
+
+      it "is true for admins" do
+        Guardian.new(admin).can_edit_email?(user).should be_true
+      end
+    end
+
+    context 'when not allowed in settings' do
+      before do
+        SiteSetting.stubs(:email_editable?).returns(false)
+      end
+
+      it "is false even for admins" do
+        Guardian.new(admin).can_edit_email?(user).should be_false
       end
     end
   end
