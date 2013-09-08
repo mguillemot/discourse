@@ -249,7 +249,9 @@ class SiteSetting < ActiveRecord::Base
   client_setting(:delete_user_max_age, 14)
   setting(:delete_all_posts_max, 10)
 
+  setting(:username_editable, true)
   setting(:username_change_period, 3) # days
+  setting(:email_editable, true)
 
   client_setting(:allow_uploaded_avatars, true)
   client_setting(:allow_animated_avatars, false)
