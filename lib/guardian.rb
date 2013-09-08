@@ -285,7 +285,12 @@ class Guardian
   end
 
   def can_edit_username?(user)
+    return false unless SiteSetting.username_editable?
     is_staff? || (is_me?(user) && (user.post_count == 0 || user.created_at > SiteSetting.username_change_period.days.ago))
+  end
+
+  def can_edit_email?(user)
+    SiteSetting.email_editable? && can_edit?(user)
   end
 
   # Deleting Methods
