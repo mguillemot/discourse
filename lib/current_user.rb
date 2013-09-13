@@ -1,7 +1,5 @@
 module CurrentUser
 
-  VERBOSE = false
-
   # Used by the caching middleware to see if we can skip the app
   def self.has_auth_cookie?(env)
     request = Rack::Request.new(env)
@@ -11,25 +9,25 @@ module CurrentUser
 
   # Used by the message bus to get the current user
   def self.lookup_from_env(env)
-    puts "LOOKUP ENV" if VERBOSE
+    Rails.logger.info "Lookup current user from env"
     request = Rack::Request.new(env)
     remote_ip = env["action_dispatch.remote_ip"].to_s
-    puts "IP #{remote_ip}" if VERBOSE
+    Rails.logger.info "Request IP is #{remote_ip}"
     cookie = request.cookies["_token"]
     lookup_from_auth_token(cookie, remote_ip)
   end
 
   def self.lookup_from_auth_token(auth_token, remote_ip)
-    puts "LOOKUP TOKEN" if VERBOSE
+    Rails.logger.info "Lookup current user from token #{auth_token} and IP #{remote_ip}"
     seed, account_id, email, nickname, ip = $authCookieEncryptor.decrypt_and_verify(auth_token)
-    puts "DECRYPTED: #{account_id} #{email} #{nickname} #{ip}" if VERBOSE
+    Rails.logger.info "Decrypted auth token: #{account_id} #{email} #{nickname} #{ip}"
     if seed && ip == remote_ip
       User.where(email: email).first_or_create(username: nickname, name: nickname, active: true, ip_address: ip)
     else
-      puts "NOP! seed=#{seed} ip=#{ip} remote_ip=#{remote_ip}" if VERBOSE
+      Rails.logger.warn "Auth token is invalid! seed=#{seed} ip=#{ip} remote_ip=#{remote_ip}"
     end
   rescue ActiveSupport::MessageVerifier::InvalidSignature
-    puts "INVALID SIGNATURE" if VERBOSE
+    Rails.logger.error "Invalid auth token signature"
     nil
   end
 
@@ -50,9 +48,10 @@ module CurrentUser
   end
 
   def current_user
-    puts "CURRENT USER? " + @current_user.inspect + "   " + @not_logged_in.inspect if VERBOSE
-
-    return @current_user if @current_user || @not_logged_in
+    if @current_user || @not_logged_in
+      Rails.logger.debug "Current user already computed: #{@current_user.inspect} not_logged_in=#{@not_logged_in.inspect}"
+      return @current_user
+    end
 
     # session_user = User.where(id: session[:current_user_id]).first if session[:current_user_id].present?
     @current_user = CurrentUser.lookup_from_auth_token(cookies["_token"], request.remote_ip)
@@ -75,6 +74,7 @@ module CurrentUser
       end
     end
 
+    Rails.logger.debug "New current user computation: #{@current_user.inspect} not_logged_in=#{@not_logged_in.inspect}"
     @current_user
   end
 
