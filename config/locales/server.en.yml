@@ -402,6 +402,7 @@ en:
     contact_email_missing: "You haven't provided a contact email for your site. Please update contact_email in the <a href='/admin/site_settings'>Site Settings</a>."
     contact_email_invalid: "The site contact email is invalid. Please update contact_email in the <a href='/admin/site_settings'>Site Settings</a>."
     title_nag: "The title Site Setting is still set to the default value. Please update it with your site's title in the <a href='/admin/site_settings'>Site Settings</a>."
+    site_description_missing: "The site_description setting is blank. Write a brief description of this forum in the <a href='/admin/site_settings'>Site Settings</a>."
     consumer_email_warning: "Your site is configured to use Gmail (or another consumer email service) to send email. <a href='http://support.google.com/a/bin/answer.py?hl=en&answer=166852' target='_blank'>Gmail limits how many emails you can send</a>. Consider using an email service provider like mandrill.com to ensure email deliverability."
     access_password_removal: "Your site was using the access_password setting, which has been removed. The login_required and must_approve_users settings have been enabled, which should be used instead. You can change them in the <a href='/admin/site_settings'>Site Settings</a>. Be sure to <a href='/admin/users/list/pending'>approve users in the Pending Users list</a>. (This message will go away after 2 days.)"
     site_contact_username_warning: "The site_contact_username setting is blank. Please update it in the <a href='/admin/site_settings'>Site Settings</a>. Set it to the username of an admin user who should be the sender of system messages."
@@ -459,6 +460,7 @@ en:
     discourse_org_access_key: "The access key used to access the Discourse Hub nickname registry at discourse.org"
     educate_until_posts: "Show pop-up composer education panel until the user has made this many posts"
     title: "Title of this site, will be used in the title tag and elsewhere"
+    site_description: "Describe this forum in one sentence. This description will be used in the meta description tag."
     contact_email: "The email address of someone who can be contacted about the site. Important notices from Discourse.org regarding critical updates may be sent to this address."
     company_full_name: "The full name of the company that runs this site, used in legal documents like the /tos"
     company_short_name: "The short name of the company that runs this site, used in legal documents like the /tos"
@@ -671,8 +673,12 @@ en:
     email_editable: "Allow users to change their e-mail address after registration."
 
     allow_uploaded_avatars: "Allow users to upload their custom avatars"
-    allow_animated_avatars: "Allow users to use animated gif for avatars"
+    allow_animated_avatars: "Allow users to use animated gif for avatars. WARNING: it is highly recommended to run the avatars:regenerate rake task after changing that setting."
     default_digest_email_frequency: "How often users receive digest emails by default. They can change this setting in their preferences."
+
+    detect_custom_avatars: "Whether or not to check that users have uploaded custom avatars"
+    max_daily_gravatar_crawls: "The maximum amount of times Discourse will check gravatar for custom avatars in a day"
+
 
   notification_types:
     mentioned: "%{display_username} mentioned you in %{link}"
@@ -934,18 +940,22 @@ en:
         For additional guidance, please refer to our [FAQ](%{base_url}/faq).
 
     user_automatically_blocked:
-      subject_template: "New user %{username} was automatically blocked"
+      subject_template: "New user %{username} blocked via flags"
       text_body_template: |
         This is an automated message to inform you that the new user [%{username}](%{user_url}) was automatically blocked because multiple users flagged %{username}'s post(s).
 
         Please [review the flags](/admin/flags). If %{username} was incorrectly blocked from posting, click the unblock button on [the admin page for this user](%{user_url}).
 
+        This threshold can be changed via the `block_new_user` site settings.
+
     spam_post_blocked:
-      subject_template: "New user %{username} is posting repeated links"
+      subject_template: "New user %{username} blocked for repeated links"
       text_body_template: |
-        This is an automated message to inform you that the new user [%{username}](%{user_url}) tried to create multiple posts with links to the same domain, but they were blocked based on the newuser_spam_host_threshold site setting.
+        This is an automated message to inform you that the new user [%{username}](%{user_url}) tried to create multiple posts with links to %{domains}, but they were blocked from further posting to avoid spam.
 
         Please [review the user](%{user_url}).
+
+        This threshold can be changed via the `newuser_spam_host_threshold` site setting.
 
     unblocked:
       subject_template: "Account unblocked"
