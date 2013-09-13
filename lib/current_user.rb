@@ -22,7 +22,12 @@ module CurrentUser
     seed, account_id, email, nickname, ip = $authCookieEncryptor.decrypt_and_verify(auth_token)
     Rails.logger.info "Decrypted auth token: #{account_id} #{email} #{nickname} #{ip}"
     if seed && ip == remote_ip
-      User.where(email: email).first_or_create(username: nickname, name: nickname, active: true, ip_address: ip)
+      u = User.where(email: email).first_or_create(username: nickname, name: nickname, active: true, ip_address: ip)
+      if u.try(:is_banned?)
+        Rails.logger.warn "User ##{u.id} found but he was banned"
+        u = nil
+      end
+      u
     else
       Rails.logger.warn "Auth token is invalid! seed=#{seed} ip=#{ip} remote_ip=#{remote_ip}"
     end
@@ -53,9 +58,7 @@ module CurrentUser
       return @current_user
     end
 
-    # session_user = User.where(id: session[:current_user_id]).first if session[:current_user_id].present?
     @current_user = CurrentUser.lookup_from_auth_token(cookies["_token"], request.remote_ip)
-    @current_user = nil if @current_user.try(:is_banned?)
 
     if @current_user
       @current_user.update_last_seen!

@@ -6,7 +6,8 @@ class HomePageConstraint
   end
 
   def matches?(request)
-    homepage = CurrentUser.current_user ? SiteSetting.homepage : SiteSetting.anonymous_homepage
+    u = CurrentUser.lookup_from_auth_token(request.cookies["_token"], request.remote_ip)
+    homepage = u ? SiteSetting.homepage : SiteSetting.anonymous_homepage
     homepage == @filter
   end
 end
