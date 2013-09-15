@@ -1,5 +1,7 @@
 module CurrentUser
 
+  CHECK_IP = false unless const_defined?(:CHECK_IP)
+
   # Used by the caching middleware to see if we can skip the app
   def self.has_auth_cookie?(env)
     request = Rack::Request.new(env)
@@ -21,7 +23,7 @@ module CurrentUser
     Rails.logger.info "Lookup current user from token #{auth_token} and IP #{remote_ip}"
     seed, account_id, email, nickname, ip = $authCookieEncryptor.decrypt_and_verify(auth_token)
     Rails.logger.info "Decrypted auth token: #{account_id} #{email} #{nickname} #{ip}"
-    if seed && ip == remote_ip
+    if seed && (ip == remote_ip || !CHECK_IP)
       u = User.where(email: email).first_or_create(username: nickname, name: nickname, active: true, ip_address: ip)
       if u.try(:is_banned?)
         Rails.logger.warn "User ##{u.id} found but he was banned"
